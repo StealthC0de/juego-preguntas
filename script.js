@@ -49,24 +49,44 @@ var preguntas = [
   },
 ];
 
-var preguntaAleatoria = preguntas[Math.floor(Math.random() * preguntas.length)];
 var preguntaElement = document.getElementById("pregunta");
 var opcionesElement = document.getElementById("opciones-container");
 var imagenElement = document.createElement("img");
-imagenElement.src = preguntaAleatoria.imagen;
 
-preguntaElement.textContent = preguntaAleatoria.pregunta;
-preguntaElement.appendChild(imagenElement);
+var preguntashechas = new Set();
+var preguntaActual = null;
 
-preguntaAleatoria.opciones.forEach(function(opcion, index) {
-  var opcionElement = document.createElement("button");
-  opcionElement.textContent = opcion;
-  opcionElement.classList.add("opcion-style");
-  opcionElement.addEventListener("click", function() {
-    verificarRespuesta(index, preguntaAleatoria.respuestaCorrecta);
+function mostrarPregunta(pregunta) {
+  preguntaElement.textContent = pregunta.pregunta;
+  imagenElement.src = pregunta.imagen;
+  preguntaElement.appendChild(imagenElement);
+
+  opcionesElement.innerHTML = '';
+  pregunta.opciones.forEach(function(opcion, index) {
+    var opcionElement = document.createElement("button");
+    opcionElement.textContent = opcion;
+    opcionElement.classList.add("opcion-style");
+    opcionElement.addEventListener("click", function() {
+      verificarRespuesta(index, pregunta.respuestaCorrecta);
+    });
+    opcionesElement.appendChild(opcionElement);
   });
-  opcionesElement.appendChild(opcionElement);
-});
+}
+
+function obtenerPreguntaAleatoria() {
+  if (preguntashechas.size === preguntas.length) {
+    console.log("¡Has respondido todas las preguntas!");
+    return null;
+  }
+
+  let preguntaNoRepetida;
+  do {
+    preguntaNoRepetida = preguntas[Math.floor(Math.random() * preguntas.length)];
+  } while (preguntashechas.has(preguntaNoRepetida));
+
+  preguntashechas.add(preguntaNoRepetida);
+  return preguntaNoRepetida;
+}
 
 function verificarRespuesta(respuestaSeleccionada, respuestaCorrecta) {
   if (respuestaSeleccionada === respuestaCorrecta) {
@@ -77,23 +97,16 @@ function verificarRespuesta(respuestaSeleccionada, respuestaCorrecta) {
   }
 }
 
-
 function siguientePregunta() {
-  preguntaAleatoria = preguntas[Math.floor(Math.random() * preguntas.length)];
-  preguntaElement.textContent = preguntaAleatoria.pregunta;
-  
-  imagenElement = document.createElement("img");
-  imagenElement.src = preguntaAleatoria.imagen + '?cache=' + new Date().getTime();
-  preguntaElement.appendChild(imagenElement);
-  
-  opcionesElement.innerHTML = '';
-  preguntaAleatoria.opciones.forEach(function(opcion, index) {
-    var opcionElement = document.createElement("button");
-    opcionElement.textContent = opcion;
-    opcionElement.classList.add("opcion-style");
-    opcionElement.addEventListener("click", function() {
-      verificarRespuesta(index, preguntaAleatoria.respuestaCorrecta);
-    });
-    opcionesElement.appendChild(opcionElement);
-  });
+  var nuevaPregunta = obtenerPreguntaAleatoria();
+  if (nuevaPregunta) {
+    preguntaActual = nuevaPregunta;
+    mostrarPregunta(preguntaActual);
+  }
+}
+
+
+preguntaActual = obtenerPreguntaAleatoria();
+if (preguntaActual) {
+  mostrarPregunta(preguntaActual);
 }
